@@ -14,12 +14,15 @@ sys.path.insert(0, str(current_dir))
 
 # 导入 API 路由
 from app.api.search import router as search_router
+from app.api.prompts import router as prompts_router
+from app.api.content import router as content_router
+from app.api.topics import router as topics_router
 
 # 创建 FastAPI 应用
 app = FastAPI(
     title="AI 内容工厂 API",
-    description="AI 驱动的全流程内容创作系统",
-    version="1.0.0",
+    description="AI-driven content creation system",
+    version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
 )
@@ -28,7 +31,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # 前端开发服务器
+        "http://localhost:3000",
         "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
@@ -38,6 +41,9 @@ app.add_middleware(
 
 # 注册路由
 app.include_router(search_router)
+app.include_router(prompts_router)
+app.include_router(content_router)
+app.include_router(topics_router)
 
 
 @app.get("/")
