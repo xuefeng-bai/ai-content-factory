@@ -6,7 +6,7 @@ Recommend topics based on search results.
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from app.ai.service import AIService
 
 router = APIRouter(prefix="/api/topics", tags=["Topics"])
