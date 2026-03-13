@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-微博热搜爬虫模块
-功能：爬取微博热搜榜 Top50（使用移动端 API）
+Weibo Hot Search Crawler
+Fetch Top 50 hot searches from Weibo mobile API
 """
 
 import requests
@@ -10,7 +10,7 @@ import time
 import random
 from pathlib import Path
 
-# User-Agent 轮换池（使用移动端 User-Agent 绕过反爬）
+# User-Agent Pool (Mobile User-Agents to bypass anti-crawling)
 USER_AGENTS = [
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
     "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36",
@@ -20,21 +20,21 @@ USER_AGENTS = [
 
 
 def get_random_user_agent() -> str:
-    """随机选择一个 User-Agent"""
+    """Randomly select a User-Agent"""
     return random.choice(USER_AGENTS)
 
 
 def fetch_weibo_hot_search(max_retries: int = 3) -> List[Dict]:
     """
-    爬取微博热搜榜（使用移动端 API 接口）
+    Fetch Weibo hot search list (using mobile API)
     
     Args:
-        max_retries: 最大重试次数
+        max_retries: Maximum retry attempts
         
     Returns:
-        热搜列表，每条包含：rank, title, hot_value, url
+        List of hot searches with rank, title, hot_value, url
     """
-    # 使用微博热搜 API（无需登录）
+    # Weibo hot search API (no login required)
     url = "https://weibo.com/ajax/side/hotSearch"
     params = {}
     
@@ -54,10 +54,10 @@ def fetch_weibo_hot_search(max_retries: int = 3) -> List[Dict]:
             data = response.json()
             hot_search_list = []
             
-            # 解析 API 返回数据
+            # Parse API response
             if "data" not in data:
-                print("[警告] 微博 API 返回数据格式异常")
-                print(f"[调试] 返回数据：{str(data)[:200]}")
+                print("[WARNING] Weibo API returned unexpected format")
+                print(f"[DEBUG] Response: {str(data)[:200]}")
                 return []
             
             realtime = data["data"].get("realtime", [])
@@ -68,10 +68,10 @@ def fetch_weibo_hot_search(max_retries: int = 3) -> List[Dict]:
                     if not title:
                         continue
                     
-                    # 提取热度值
-                    hot_value = item.get("note", "") or f"{item.get('num', 0)} 热度"
+                    # Extract hot value
+                    hot_value = item.get("note", "") or f"{item.get('num', 0)}热度"
                     
-                    # 生成链接
+                    # Generate URL
                     url = f"https://s.weibo.com/weibo?q={title}"
                     
                     hot_search_list.append({
@@ -82,32 +82,32 @@ def fetch_weibo_hot_search(max_retries: int = 3) -> List[Dict]:
                         "source": "weibo"
                     })
                 except Exception as e:
-                    print(f"[警告] 解析热搜项失败：{e}")
+                    print(f"[WARNING] Failed to parse hot search item: {e}")
                     continue
             
-            print(f"[成功] 爬取微博热搜 {len(hot_search_list)} 条")
+            print(f"[SUCCESS] Fetched {len(hot_search_list)} Weibo hot searches")
             return hot_search_list
             
         except requests.RequestException as e:
-            print(f"[错误] 爬取微博热搜失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+            print(f"[ERROR] Failed to fetch Weibo hot search (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # 指数退避
+                time.sleep(2 ** attempt)  # Exponential backoff
             else:
-                print(f"[错误] 达到最大重试次数，返回空列表")
+                print(f"[ERROR] Max retries reached, returning empty list")
                 return []
         except Exception as e:
-            print(f"[错误] 解析 JSON 失败：{e}")
+            print(f"[ERROR] Failed to parse JSON: {e}")
             return []
     
     return []
 
 
 if __name__ == "__main__":
-    # 测试代码
-    print("开始测试微博热搜爬虫...")
+    # Test code
+    print("Testing Weibo hot search crawler...")
     result = fetch_weibo_hot_search()
-    print(f"\n爬取结果：{len(result)} 条")
+    print(f"\nResult: {len(result)} items")
     if result:
-        print("\n前 5 条热搜：")
+        print("\nTop 5 hot searches:")
         for item in result[:5]:
             print(f"  {item['rank']}. {item['title']} ({item['hot_value']})")

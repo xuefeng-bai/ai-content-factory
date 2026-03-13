@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-知乎热榜爬虫模块
-功能：爬取知乎热榜 Top50（使用移动端 API）
+Zhihu Hot List Crawler
+Fetch Top 50 hot questions from Zhihu mobile API
 """
 
 import requests
@@ -10,7 +10,7 @@ import time
 import random
 from pathlib import Path
 
-# User-Agent 轮换池（使用移动端 User-Agent）
+# User-Agent Pool (Mobile User-Agents)
 USER_AGENTS = [
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
     "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36",
@@ -20,21 +20,21 @@ USER_AGENTS = [
 
 
 def get_random_user_agent() -> str:
-    """随机选择一个 User-Agent"""
+    """Randomly select a User-Agent"""
     return random.choice(USER_AGENTS)
 
 
 def fetch_zhihu_hot_list(max_retries: int = 3) -> List[Dict]:
     """
-    爬取知乎热榜（使用移动端 API 接口）
+    Fetch Zhihu hot list (using mobile API)
     
     Args:
-        max_retries: 最大重试次数
+        max_retries: Maximum retry attempts
         
     Returns:
-        热榜列表，每条包含：rank, title, hot_value, url, answer_count
+        List of hot questions with rank, title, hot_value, url, answer_count
     """
-    # 使用知乎移动端 API
+    # Zhihu mobile API
     url = "https://api.zhihu.com/topstory/hot-list"
     params = {
         "limit": 50,
@@ -58,19 +58,19 @@ def fetch_zhihu_hot_list(max_retries: int = 3) -> List[Dict]:
             hot_list = []
             
             if "data" not in data:
-                print("[警告] 知乎 API 返回数据格式异常")
+                print("[WARNING] Zhihu API returned unexpected format")
                 return []
             
             for idx, item in enumerate(data["data"], 1):
                 try:
                     target = item.get("target", {})
                     question_id = target.get("id", "")
-                    title = target.get("title", "无标题")
+                    title = target.get("title", "No Title")
                     answer_count = target.get("answer_count", 0)
                     excerpt = target.get("excerpt", "")
                     
-                    # 提取热度值（回答数）
-                    hot_value = f"{answer_count} 回答"
+                    # Extract hot value (answer count)
+                    hot_value = f"{answer_count}回答"
                     
                     hot_list.append({
                         "rank": idx,
@@ -82,32 +82,32 @@ def fetch_zhihu_hot_list(max_retries: int = 3) -> List[Dict]:
                         "excerpt": excerpt[:50] + "..." if len(excerpt) > 50 else excerpt
                     })
                 except Exception as e:
-                    print(f"[警告] 解析第{idx}条热榜失败：{e}")
+                    print(f"[WARNING] Failed to parse hot list item {idx}: {e}")
                     continue
             
-            print(f"[成功] 爬取知乎热榜 {len(hot_list)} 条")
+            print(f"[SUCCESS] Fetched {len(hot_list)} Zhihu hot questions")
             return hot_list
             
         except requests.RequestException as e:
-            print(f"[错误] 爬取知乎热榜失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+            print(f"[ERROR] Failed to fetch Zhihu hot list (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # 指数退避
+                time.sleep(2 ** attempt)  # Exponential backoff
             else:
-                print(f"[错误] 达到最大重试次数，返回空列表")
+                print(f"[ERROR] Max retries reached, returning empty list")
                 return []
         except Exception as e:
-            print(f"[错误] 解析 JSON 失败：{e}")
+            print(f"[ERROR] Failed to parse JSON: {e}")
             return []
     
     return []
 
 
 if __name__ == "__main__":
-    # 测试代码
-    print("开始测试知乎热榜爬虫...")
+    # Test code
+    print("Testing Zhihu hot list crawler...")
     result = fetch_zhihu_hot_list()
-    print(f"\n爬取结果：{len(result)} 条")
+    print(f"\nResult: {len(result)} items")
     if result:
-        print("\n前 5 条热榜：")
+        print("\nTop 5 hot questions:")
         for item in result[:5]:
             print(f"  {item['rank']}. {item['title']} ({item['hot_value']})")
