@@ -1,20 +1,20 @@
 # FastAPI Framework
-fastapi
-uvicorn
+fastapi>=0.100.0
+uvicorn>=0.20.0
 
 # Database
-sqlalchemy
-pymysql
+sqlalchemy>=2.0.0
+pymysql>=1.1.0
 
 # AI Service
-dashscope
+dashscope>=1.14.0
 
 # Crawler
-requests
-beautifulsoup4
+requests>=2.31.0
+beautifulsoup4>=4.12.0
 
 # Utilities
-python-dotenv
-loguru
-httpx
-pydantic
+python-dotenv>=1.0.0
+loguru>=0.7.0
+httpx>=0.24.0
+pydantic>=2.0.0
