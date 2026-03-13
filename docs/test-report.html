@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 内容工厂 - 联调测试报告</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 32px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 16px; }
+        .content { padding: 40px; }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .status-success { background: #10b981; color: white; }
+        .section { margin-bottom: 30px; }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .test-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        .icon-success { background: #10b981; color: white; }
+        .test-info { flex: 1; }
+        .test-name { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .test-detail { font-size: 14px; color: #666; }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .data-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .data-number { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
+        .data-label { font-size: 16px; opacity: 0.9; }
+        .list-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        .list-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .rank {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            color: white;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 AI 内容工厂</h1>
+            <p>Phase 1 - 搜索模块联调测试报告</p>
+        </div>
+        
+        <div class="content">
+            <div style="text-align: center;">
+                <span class="status-badge status-success">✅ 测试全部通过</span>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📊 测试结果总览</div>
+                <div class="test-item">
+                    <div class="test-icon icon-success">✓</div>
+                    <div class="test-info">
+                        <div class="test-name">微博热搜爬虫</div>
+                        <div class="test-detail">成功爬取 50 条热搜数据</div>
+                    </div>
+                </div>
+                <div class="test-item">
+                    <div class="test-icon icon-success">✓</div>
+                    <div class="test-info">
+                        <div class="test-name">知乎热榜爬虫</div>
+                        <div class="test-detail">成功爬取 30 条热榜数据</div>
+                    </div>
+                </div>
+                <div class="test-item">
+                    <div class="test-icon icon-success">✓</div>
+                    <div class="test-info">
+                        <div class="test-name">搜索 API 接口</div>
+                        <div class="test-detail">POST /api/search 响应正常</div>
+                    </div>
+                </div>
+                <div class="test-item">
+                    <div class="test-icon icon-success">✓</div>
+                    <div class="test-info">
+                        <div class="test-name">后端服务</div>
+                        <div class="test-detail">http://localhost:8000 运行正常</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📈 数据概览</div>
+                <div class="data-grid">
+                    <div class="data-card">
+                        <div class="data-number">50</div>
+                        <div class="data-label">微博热搜条数</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-number">30</div>
+                        <div class="data-label">知乎热榜条数</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">🔥 微博热搜 Top5</div>
+                <div class="list-box">
+                    <div class="list-item">
+                        <span class="rank">1</span>微信新功能被称为社恐福音
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">2</span>建议允许公积金直接抵首付还房贷
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">3</span>春天里的中国向新而行
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">4</span>法拉利来中国也得进货
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">5</span>中方回应特朗普计划访华
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📚 知乎热榜 Top5</div>
+                <div class="list-box">
+                    <div class="list-item">
+                        <span class="rank">1</span>本田预计 2025 财年净亏最高 6900 亿日元，是上市以来首次年度亏损，巨亏原因有哪些？你看好其前景吗？
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">2</span>别的国家有没有从中国的史料中发现自己国家没有记载过的历史？
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">3</span>我同事在公司老实巴交、从来不争不抢不抱怨，为人亲和，但是为什么公司有脏活、累活就把他当作"软柿子"？
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">4</span>短剧会取代长剧的地位吗？
+                    </div>
+                    <div class="list-item">
+                        <span class="rank">5</span>代表建议取消中考分流，禁止为升学率游说学生弃考，若施行将对我国教育生态、人才结构等产生哪些影响？
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            测试时间：2026-03-13 08:19 | 测试状态：✅ 全部通过
+        </div>
+    </div>
+</body>
+</html>

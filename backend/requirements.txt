@@ -1,0 +1,20 @@
+# FastAPI 框架
+fastapi
+uvicorn
+
+# 数据库
+sqlalchemy
+pymysql
+
+# AI 服务
+dashscope
+
+# 爬虫
+requests
+beautifulsoup4
+
+# 工具库
+python-dotenv
+loguru
+httpx
+pydantic
