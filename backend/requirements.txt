@@ -1,19 +1,19 @@
-# FastAPI 框架
+# FastAPI Framework
 fastapi
 uvicorn
 
-# 数据库
+# Database
 sqlalchemy
 pymysql
 
-# AI 服务
+# AI Service
 dashscope
 
-# 爬虫
+# Crawler
 requests
 beautifulsoup4
 
-# 工具库
+# Utilities
 python-dotenv
 loguru
 httpx
