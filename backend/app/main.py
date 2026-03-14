@@ -17,6 +17,8 @@ from app.api.search import router as search_router
 from app.api.prompts import router as prompts_router
 from app.api.content import router as content_router
 from app.api.topics import router as topics_router
+from app.api.images import router as images_router
+from app.api.history import router as history_router
 
 # 创建 FastAPI 应用
 app = FastAPI(
@@ -44,6 +46,8 @@ app.include_router(search_router)
 app.include_router(prompts_router)
 app.include_router(content_router)
 app.include_router(topics_router)
+app.include_router(images_router)
+app.include_router(history_router)
 
 
 @app.get("/")
