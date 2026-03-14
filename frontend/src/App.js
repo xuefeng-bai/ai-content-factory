@@ -6,9 +6,15 @@ import {
   ThunderboltOutlined,
   PictureOutlined,
   HistoryOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 
 import SearchPage from './pages/Search';
+import PromptsPage from './pages/Prompts';
+import PromptEditPage from './pages/PromptEdit';
+import PromptTestPage from './pages/PromptTest';
+import TopicPage from './pages/Topic';
+import PreviewPage from './pages/Preview';
 
 const { Header, Content, Footer } = Layout;
 
@@ -34,6 +40,11 @@ const App = () => {
                 label: <Link to="/">搜索</Link>,
               },
               {
+                key: 'prompts',
+                icon: <SettingOutlined />,
+                label: <Link to="/prompts">Prompt 管理</Link>,
+              },
+              {
                 key: 'topic',
                 icon: <ThunderboltOutlined />,
                 label: <Link to="/topic">选题</Link>,
@@ -54,13 +65,17 @@ const App = () => {
         <Content style={{ padding: '0 50px', marginTop: '20px' }}>
           <Routes>
             <Route path="/" element={<SearchPage />} />
-            <Route path="/topic" element={<div style={{ padding: '40px', textAlign: 'center' }}>选题模块开发中...</div>} />
-            <Route path="/content" element={<div style={{ padding: '40px', textAlign: 'center' }}>内容生成模块开发中...</div>} />
+            <Route path="/prompts" element={<PromptsPage />} />
+            <Route path="/prompts/new" element={<PromptEditPage />} />
+            <Route path="/prompts/:id/edit" element={<PromptEditPage />} />
+            <Route path="/prompts/test" element={<PromptTestPage />} />
+            <Route path="/topic" element={<TopicPage />} />
+            <Route path="/content" element={<PreviewPage />} />
             <Route path="/history" element={<div style={{ padding: '40px', textAlign: 'center' }}>历史模块开发中...</div>} />
           </Routes>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-          AI 内容工厂 v1.0.0 - Phase 1 开发中
+          AI 内容工厂 v2.0.0 - Phase 2 开发中
         </Footer>
       </Layout>
     </Router>

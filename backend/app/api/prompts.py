@@ -358,3 +358,231 @@ async def delete_prompt(prompt_id: int):
         message="Prompt deleted successfully",
         data={"id": prompt_id}
     )
+
+
+# ==================== Version Management ====================
+
+class PromptVersionCreate(BaseModel):
+    """Create new prompt version."""
+    template: str = Field(..., description="New template")
+    variables: Optional[List[str]] = Field(None, description="Variables")
+    changes_log: Optional[str] = Field(None, description="Change log")
+
+
+class PromptVersionResponse(BaseModel):
+    """Prompt version response."""
+    id: int
+    prompt_id: int
+    version: str
+    template: str
+    variables: list
+    change_log: Optional[str]
+    is_published: bool
+    created_at: str
+
+
+@router.post("/{prompt_id}/versions", response_model=PromptListResponse)
+async def create_version(prompt_id: int, version_data: PromptVersionCreate):
+    """
+    Create a new version for a prompt.
+    
+    - **prompt_id**: Prompt ID
+    - **template**: New template
+    - **changes_log**: Change description
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check if prompt exists
+    cursor.execute("SELECT * FROM prompts WHERE id = ?", (prompt_id,))
+    row = cursor.fetchone()
+    
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    
+    # Get max version
+    cursor.execute(
+        "SELECT MAX(version) FROM prompt_versions WHERE prompt_id = ?",
+        (prompt_id,)
+    )
+    max_version = cursor.fetchone()[0]
+    next_version = f"v{int(max_version[1:]) + 1}" if max_version else "v1"
+    
+    # Insert new version
+    cursor.execute("""
+        INSERT INTO prompt_versions 
+        (prompt_id, version, template, variables, change_log, is_published, created_at)
+        VALUES (?, ?, ?, ?, ?, 0, CURRENT_TIMESTAMP)
+    """, (
+        prompt_id,
+        next_version,
+        version_data.template,
+        json.dumps(version_data.variables) if version_data.variables else row["variables"],
+        version_data.changes_log or ""
+    ))
+    
+    version_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    return PromptListResponse(
+        code=201,
+        message=f"Version {next_version} created successfully",
+        data={"version_id": version_id, "version": next_version}
+    )
+
+
+@router.get("/{prompt_id}/versions", response_model=PromptListResponse)
+async def list_versions(prompt_id: int):
+    """
+    Get version history for a prompt.
+    
+    - **prompt_id**: Prompt ID
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT * FROM prompt_versions WHERE prompt_id = ? ORDER BY created_at DESC",
+        (prompt_id,)
+    )
+    versions = [dict(row) for row in cursor.fetchall()]
+    
+    # Parse variables JSON
+    for v in versions:
+        if v.get("variables"):
+            try:
+                v["variables"] = json.loads(v["variables"])
+            except:
+                v["variables"] = []
+    
+    conn.close()
+    
+    return PromptListResponse(
+        code=200,
+        message="success",
+        data={"versions": versions}
+    )
+
+
+@router.post("/{prompt_id}/versions/{version_id}/publish", response_model=PromptListResponse)
+async def publish_version(prompt_id: int, version_id: int):
+    """
+    Publish a prompt version.
+    
+    - **prompt_id**: Prompt ID
+    - **version_id**: Version ID to publish
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check if version exists
+    cursor.execute(
+        "SELECT * FROM prompt_versions WHERE id = ? AND prompt_id = ?",
+        (version_id, prompt_id)
+    )
+    row = cursor.fetchone()
+    
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Version not found")
+    
+    # Publish version
+    cursor.execute("""
+        UPDATE prompt_versions 
+        SET is_published = 1, published_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (version_id,))
+    
+    # Update prompt template
+    cursor.execute("""
+        UPDATE prompts 
+        SET template = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (row["template"], prompt_id))
+    
+    conn.commit()
+    conn.close()
+    
+    return PromptListResponse(
+        code=200,
+        message="Version published successfully",
+        data={"version_id": version_id}
+    )
+
+
+# ==================== Prompt Testing ====================
+
+class PromptTestRequest(BaseModel):
+    """Prompt test request."""
+    prompt_id: int = Field(..., description="Prompt ID")
+    input_vars: Dict[str, str] = Field(..., description="Input variables")
+    version_id: Optional[int] = Field(None, description="Specific version to test")
+
+
+class PromptTestResponse(BaseModel):
+    """Prompt test response."""
+    code: int
+    message: str
+    data: Dict[str, Any]
+
+
+@router.post("/test", response_model=PromptTestResponse)
+async def test_prompt(test_data: PromptTestRequest):
+    """
+    Test a prompt with given input variables.
+    
+    - **prompt_id**: Prompt ID to test
+    - **input_vars**: Input variables (key-value pairs)
+    - **version_id**: Optional specific version
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Get prompt
+    cursor.execute("SELECT * FROM prompts WHERE id = ?", (test_data.prompt_id,))
+    prompt_row = cursor.fetchone()
+    
+    if not prompt_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    
+    prompt = dict(prompt_row)
+    
+    # Get version if specified
+    if test_data.version_id:
+        cursor.execute(
+            "SELECT * FROM prompt_versions WHERE id = ? AND prompt_id = ?",
+            (test_data.version_id, test_data.prompt_id)
+        )
+        version_row = cursor.fetchone()
+        if version_row:
+            prompt["template"] = version_row["template"]
+    
+    conn.close()
+    
+    # Fill template variables
+    template = prompt["template"]
+    try:
+        filled_template = template.format(**test_data.input_vars)
+    except KeyError as e:
+        return PromptTestResponse(
+            code=400,
+            message=f"Missing variable: {e}",
+            data={"error": f"Template requires variable: {e}"}
+        )
+    
+    # Call AI (placeholder - will be implemented in AIService)
+    # For now, return filled template
+    return PromptTestResponse(
+        code=200,
+        message="Prompt test successful",
+        data={
+            "prompt_id": test_data.prompt_id,
+            "prompt_name": prompt["name"],
+            "filled_template": filled_template,
+            "input_vars": test_data.input_vars,
+            "note": "AI call will be implemented in AIService"
+        }
+    )
