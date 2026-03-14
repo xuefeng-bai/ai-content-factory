@@ -11,8 +11,8 @@ import {
 
 import SearchPage from './pages/Search';
 import PromptsPage from './pages/Prompts';
-import PromptEditPage from './pages/PromptEdit';
-import PromptTestPage from './pages/PromptTest';
+import PromptEditPage from './pages/PromptEditPage';
+import PromptTestPage from './pages/PromptTestPage';
 import TopicPage from './pages/Topic';
 import PreviewPage from './pages/Preview';
 
@@ -66,7 +66,6 @@ const App = () => {
           <Routes>
             <Route path="/" element={<SearchPage />} />
             <Route path="/prompts" element={<PromptsPage />} />
-            <Route path="/prompts/new" element={<PromptEditPage />} />
             <Route path="/prompts/:id/edit" element={<PromptEditPage />} />
             <Route path="/prompts/test" element={<PromptTestPage />} />
             <Route path="/topic" element={<TopicPage />} />

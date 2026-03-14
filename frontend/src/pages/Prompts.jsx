@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Table,
   Button,
@@ -20,6 +20,8 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import promptsApi from '../services/prompts';
+import PromptCreateModal from '../components/PromptCreateModal';
+import PromptCreateModal from '../components/PromptCreateModal';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -36,6 +38,7 @@ const PromptsPage = () => {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
 
   // 加载 Prompt 列表
   const loadPrompts = async () => {
@@ -166,13 +169,18 @@ const PromptsPage = () => {
   };
 
   const handleEdit = (record) => {
-    // TODO: 跳转到编辑页或打开编辑弹窗
-    message.info('编辑功能开发中...');
+    // 跳转到编辑页
+    navigate(`/prompts/${record.id}/edit`);
   };
 
   const handleTest = (record) => {
-    // TODO: 打开测试弹窗
-    message.info('测试功能开发中...');
+    // 跳转到测试页，并传递 Prompt ID
+    navigate(`/prompts/test?prompt_id=${record.id}`);
+  };
+
+  const handleCreateSuccess = () => {
+    setCreateModalVisible(false);
+    loadPrompts();
   };
 
   return (
@@ -182,7 +190,11 @@ const PromptsPage = () => {
           <Title level={2} style={{ margin: 0 }}>
             Prompt 管理
           </Title>
-          <Button type="primary" icon={<PlusOutlined />}>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={() => setCreateModalVisible(true)}
+          >
             新建 Prompt
           </Button>
         </div>
@@ -230,6 +242,13 @@ const PromptsPage = () => {
           }}
         />
       </Card>
+
+      {/* 新建 Prompt 弹窗 */}
+      <PromptCreateModal
+        visible={createModalVisible}
+        onCancel={() => setCreateModalVisible(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 };
