@@ -7,7 +7,12 @@ Recommend topics based on search results.
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
-from app.ai.service import AIService
+
+# 使用 Mock AI 服务（避免 dashscope 依赖）
+try:
+    from app.ai.service import AIService
+except ImportError:
+    from app.ai.service_mock import MockAIService as AIService
 
 router = APIRouter(prefix="/api/topics", tags=["Topics"])
 
