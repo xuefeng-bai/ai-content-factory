@@ -48,20 +48,36 @@ async def search_hot_topics(request: SearchRequest):
     """
     搜索热门话题
     
-    同时获取微博热搜和知乎热榜
+    同时获取微博热搜和知乎热榜，并根据关键词过滤
     
     Args:
-        request: 搜索请求（包含 theme 主题）
+        request: 搜索请求（包含 theme 主题，用于过滤）
         
     Returns:
-        包含微博热搜和知乎热榜的列表
+        包含微博热搜和知乎热榜的列表（已过滤）
     """
     try:
-        print(f"[API] 收到搜索请求，theme: {request.theme or '无'}")
+        keyword = request.theme.strip() if request.theme else ""
+        print(f"[API] 收到搜索请求，keyword: {keyword or '无（获取全部热搜）'}")
         
-        # 并发获取微博和知乎数据（这里简化为顺序执行）
+        # 获取微博和知乎数据
         weibo_data = fetch_weibo_hot_search()
         zhihu_data = fetch_zhihu_hot_list()
+        
+        # 如果有搜索关键词，进行过滤
+        if keyword:
+            print(f"[API] 使用关键词过滤：{keyword}")
+            weibo_data = [
+                item for item in weibo_data
+                if keyword.lower() in item.get('title', '').lower()
+            ]
+            zhihu_data = [
+                item for item in zhihu_data
+                if keyword.lower() in item.get('title', '').lower()
+            ]
+            print(f"[API] 过滤后：微博{len(weibo_data)}条，知乎{len(zhihu_data)}条")
+        else:
+            print(f"[API] 无关键词，返回全部热搜数据")
         
         # 格式化数据
         weibo_items = [SearchItem(**item) for item in weibo_data]
