@@ -36,15 +36,41 @@ def print_step(message: str):
 
 
 def execute_sql_file(conn: sqlite3.Connection, sql_file: Path):
-    """执行 SQL 文件."""
+    """执行 SQL 文件（支持增量迁移）."""
     if not sql_file.exists():
         raise FileNotFoundError(f"SQL 文件不存在：{sql_file}")
     
     with open(sql_file, 'r', encoding='utf-8') as f:
         sql_content = f.read()
     
-    # 执行 SQL（支持多语句）
-    conn.executescript(sql_content)
+    # 分割 SQL 语句并逐条执行（支持增量迁移）
+    statements = []
+    current_stmt = []
+    for line in sql_content.split('\n'):
+        if line.strip().startswith('--'):
+            continue
+        current_stmt.append(line)
+        if line.strip().endswith(';'):
+            statements.append('\n'.join(current_stmt))
+            current_stmt = []
+    
+    # 执行每个语句（跳过已存在的）
+    executed = 0
+    skipped = 0
+    for stmt in statements:
+        if not stmt.strip():
+            continue
+        try:
+            conn.execute(stmt)
+            executed += 1
+        except sqlite3.IntegrityError as e:
+            if "UNIQUE constraint failed" in str(e):
+                # 已存在，跳过
+                skipped += 1
+            else:
+                raise
+    
+    print_step(f"✅ 执行 {executed} 条语句，跳过 {skipped} 条已存在语句")
 
 
 def verify_migration(conn: sqlite3.Connection) -> bool:
