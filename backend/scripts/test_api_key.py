@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 # 设置工作目录为 backend 目录
-backend_dir = Path(__file__).parent
+backend_dir = Path(__file__).parent.parent
 os.chdir(backend_dir)
 
 # 添加项目路径
