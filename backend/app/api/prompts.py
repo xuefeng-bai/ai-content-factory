@@ -556,6 +556,11 @@ async def test_prompt(test_data: PromptTestRequest):
     - **input_vars**: Input variables (key-value pairs)
     - **version_id**: Optional specific version
     """
+    import logging
+    import time
+    from app.ai.service import AIService
+    
+    logger = logging.getLogger(__name__)
     conn = get_db_connection()
     cursor = conn.cursor()
     
@@ -592,8 +597,37 @@ async def test_prompt(test_data: PromptTestRequest):
             data={"error": f"Template requires variable: {e}"}
         )
     
-    # Call AI (placeholder - will be implemented in AIService)
-    # For now, return filled template
+    # Call AI service
+    ai_output = None
+    model_used = None
+    duration_ms = 0
+    tokens_used = 0
+    
+    try:
+        logger.info(f"[Prompt Test] Calling AI for prompt_id={test_data.prompt_id}")
+        ai_service = AIService()
+        
+        start_time = time.time()
+        
+        # Get prompt name and call AI
+        prompt_name = prompt["name"]
+        ai_output = ai_service.generate(
+            prompt_name=prompt_name,
+            variables=test_data.input_vars,
+            is_image=False
+        )
+        
+        duration_ms = int((time.time() - start_time) * 1000)
+        tokens_used = len(ai_output) // 4  # Estimate
+        model_used = prompt.get("model", "qwen-plus")
+        
+        logger.info(f"[Prompt Test] AI generation successful, {len(ai_output)} chars, {duration_ms}ms")
+        
+    except Exception as e:
+        logger.error(f"[Prompt Test] AI generation failed: {e}")
+        logger.exception("Full traceback:")
+        # Continue without AI output
+    
     return PromptTestResponse(
         code=200,
         message="Prompt test successful",
@@ -602,6 +636,9 @@ async def test_prompt(test_data: PromptTestRequest):
             "prompt_name": prompt["name"],
             "filled_template": filled_template,
             "input_vars": test_data.input_vars,
-            "note": "AI call will be implemented in AIService"
+            "ai_output": ai_output,
+            "model": model_used,
+            "duration_ms": duration_ms,
+            "tokens_used": tokens_used
         }
     )

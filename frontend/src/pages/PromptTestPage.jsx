@@ -67,7 +67,7 @@ const PromptTestPage = () => {
 
         <Alert
           message="测试说明"
-          description="输入 Prompt ID 和变量 JSON，测试 Prompt 模板填充效果。不会调用真实 AI，仅展示填充后的模板。"
+          description="输入 Prompt ID 和变量 JSON，测试 Prompt 效果。将展示：1) 填充后的模板  2) AI 生成的真实内容（需要有效的 API Key）"
           type="info"
           showIcon
           style={{ marginBottom: '24px' }}
@@ -152,16 +152,38 @@ const PromptTestPage = () => {
                 <TextArea
                   value={result.filled_template}
                   readOnly
-                  rows={10}
+                  rows={8}
                   style={{ fontFamily: 'monospace', fontSize: '12px' }}
                 />
               </Card>
 
-              {result.note && (
+              {result.ai_output && (
+                <Card size="small" title="✨ AI 生成内容">
+                  <TextArea
+                    value={result.ai_output}
+                    readOnly
+                    rows={12}
+                    style={{ 
+                      fontFamily: 'monospace', 
+                      fontSize: '13px',
+                      background: '#f6ffed',
+                      border: '1px solid #b7eb8f'
+                    }}
+                  />
+                  <div style={{ marginTop: '12px' }}>
+                    <Tag color="green">AI 生成</Tag>
+                    <Tag>模型：{result.model || 'qwen-plus'}</Tag>
+                    <Tag>耗时：{result.duration_ms || 0}ms</Tag>
+                    <Tag>Token 数：{result.tokens_used || 0}</Tag>
+                  </div>
+                </Card>
+              )}
+
+              {result.note && !result.ai_output && (
                 <Alert
                   message="提示"
                   description={result.note}
-                  type="info"
+                  type="warning"
                   showIcon
                 />
               )}
