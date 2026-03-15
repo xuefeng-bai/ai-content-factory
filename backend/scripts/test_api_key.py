@@ -5,10 +5,15 @@
 """
 
 import sys
+import os
 from pathlib import Path
 
+# 设置工作目录为 backend 目录
+backend_dir = Path(__file__).parent
+os.chdir(backend_dir)
+
 # 添加项目路径
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(backend_dir))
 
 from app.config import config
 from app.ai.service import AIService
