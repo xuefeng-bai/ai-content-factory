@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-AI Service
-Unified interface for AI generation with retry and timeout support.
+AI Service - Image Generation Support
+支持图片生成的 AI 服务
 """
 
 import time
 import logging
+import base64
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
 import dashscope
 from dashscope import Generation
+from dashscope import ImageSynthesis
 
 from app.config import config
 from app.ai.prompts import PromptLoader, Prompt
@@ -28,7 +30,7 @@ class AIService:
     - Load prompts from database
     - Validate variables
     - Fill prompt templates
-    - Call DashScope AI with retry and timeout
+    - Call DashScope AI with retry and timeout (text & image)
     - Log generation history
     """
     
@@ -99,16 +101,25 @@ class AIService:
                 logger.info(f"Calling AI (attempt {attempt + 1}/{self.max_retries})")
                 logger.debug(f"Prompt: {filled_prompt[:200]}...")
                 
-                response = self._call_ai(
-                    prompt=filled_prompt,
-                    model=model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    timeout=timeout
-                )
-                
-                logger.info(f"AI generation successful, {len(response)} characters")
-                return response
+                if is_image:
+                    # 图片生成返回的是 URL，不是文本
+                    result = self._call_image_ai(
+                        prompt=filled_prompt,
+                        timeout=timeout
+                    )
+                    logger.info(f"Image generation successful, URL: {result}")
+                    return result
+                else:
+                    # 文本生成
+                    response = self._call_ai(
+                        prompt=filled_prompt,
+                        model=model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        timeout=timeout
+                    )
+                    logger.info(f"AI generation successful, {len(response)} characters")
+                    return response
                 
             except Exception as e:
                 last_error = e
@@ -132,7 +143,7 @@ class AIService:
         timeout: int
     ) -> str:
         """
-        Call DashScope AI.
+        Call DashScope AI for text generation.
         
         Args:
             prompt: Filled prompt
@@ -142,7 +153,7 @@ class AIService:
             timeout: Timeout in seconds
         
         Returns:
-            Generated content
+            Generated text content
         """
         try:
             response = Generation.call(
@@ -164,6 +175,97 @@ class AIService:
         except Exception as e:
             logger.error(f"DashScope API error: {e}")
             raise
+    
+    def _call_image_ai(
+        self,
+        prompt: str,
+        size: str = "1024x1024",
+        n: int = 1,
+        timeout: int = 60
+    ) -> str:
+        """
+        Call DashScope Image Synthesis API.
+        
+        Args:
+            prompt: Image generation prompt
+            size: Image size (1024x1024, 720x1280, 1280x720)
+            n: Number of images to generate
+            timeout: Timeout in seconds
+        
+        Returns:
+            Image URL (first image if multiple)
+        """
+        try:
+            logger.info(f"Calling DashScope Image Synthesis API: prompt={prompt[:100]}...")
+            
+            response = ImageSynthesis.call(
+                model='wanx-v1',  # 通义万相文生图模型
+                prompt=prompt,
+                n=n,
+                size=size,
+                timeout=timeout
+            )
+            
+            if response.status_code == 200:
+                # 返回第一张图片的 URL
+                image_url = response.output.results[0].url
+                logger.info(f"Image generated successfully: {image_url}")
+                return image_url
+            else:
+                raise Exception(
+                    f"Image API error: {response.status_code} - {response.message}"
+                )
+                
+        except Exception as e:
+            logger.error(f"DashScope Image API error: {e}")
+            raise
+    
+    def generate_image(
+        self,
+        prompt: str,
+        title: str,
+        aspect_ratio: str = "16:9",
+        platform: str = "wechat",
+        size: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Generate image with metadata.
+        
+        Args:
+            prompt: Image generation prompt
+            title: Image title
+            aspect_ratio: Aspect ratio (16:9, 3:4, 1:1)
+            platform: Platform (wechat/xhs)
+            size: Custom size (optional, auto-calculated if not provided)
+        
+        Returns:
+            Dictionary with image_url, title, aspect_ratio, platform, prompt
+        """
+        # 根据宽高比计算尺寸
+        if not size:
+            size_map = {
+                "16:9": "1280x720",  # 公众号封面
+                "3:4": "768x1024",   # 小红书封面
+                "1:1": "1024x1024",  # 正方形
+            }
+            size = size_map.get(aspect_ratio, "1024x1024")
+        
+        # 生成图片
+        image_url = self._call_image_ai(
+            prompt=prompt,
+            size=size,
+            n=1,
+            timeout=self.image_timeout
+        )
+        
+        return {
+            "image_url": image_url,
+            "title": title,
+            "aspect_ratio": aspect_ratio,
+            "platform": platform,
+            "prompt": prompt,
+            "size": size
+        }
     
     def generate_text(
         self,
