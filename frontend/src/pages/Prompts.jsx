@@ -21,7 +21,6 @@ import {
 } from '@ant-design/icons';
 import promptsApi from '../services/prompts';
 import PromptCreateModal from '../components/PromptCreateModal';
-import PromptCreateModal from '../components/PromptCreateModal';
 
 const { Title } = Typography;
 const { TextArea } = Input;
