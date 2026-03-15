@@ -87,7 +87,17 @@ def row_to_dict(row: sqlite3.Row) -> dict:
     """Convert sqlite3.Row to dict."""
     if row is None:
         return None
-    return dict(row)
+    result = dict(row)
+    
+    # Parse JSON fields
+    if 'variables' in result and result['variables']:
+        try:
+            result['variables'] = json.loads(result['variables'])
+        except (json.JSONDecodeError, TypeError):
+            # If already a string or invalid JSON, keep as is
+            pass
+    
+    return result
 
 
 # ==================== API Endpoints ====================

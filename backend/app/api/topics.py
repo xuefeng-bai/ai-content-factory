@@ -47,18 +47,56 @@ async def recommend_topics(request: TopicRecommendRequest):
     
     Returns 3-5 recommended topics.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
+        logger.info(f"[Topics API] Received request with {len(request.search_results)} search results")
+        
+        # 如果没有搜索结果，返回示例数据
+        if not request.search_results or len(request.search_results) == 0:
+            logger.warning("[Topics API] No search results, using mock data")
+            mock_topics = {
+                "topics": [
+                    {
+                        "title": "AI 工具提升效率的 5 个技巧",
+                        "angle": "职场人必备技能",
+                        "core_point": "用 AI 节省 50% 工作时间",
+                        "platforms": ["douyin", "wechat", "xhs"],
+                        "hot_score": 9,
+                        "reason": "切中职场痛点，实用性强"
+                    },
+                    {
+                        "title": "打工人如何用 AI 逆袭",
+                        "angle": "个人成长故事",
+                        "core_point": "从加班狗到效率达人",
+                        "platforms": ["douyin", "xhs"],
+                        "hot_score": 8,
+                        "reason": "情感共鸣强，易传播"
+                    }
+                ]
+            }
+            return TopicRecommendResponse(
+                code=200,
+                message="Topics recommended successfully (mock data)",
+                data={"topics": mock_topics}
+            )
+        
         ai_service = AIService()
         
         # Format search results for prompt
         search_text = format_search_results(request.search_results)
+        logger.info(f"[Topics API] Formatted search results: {search_text[:200]}...")
         
         # Generate topic recommendations
+        logger.info("[Topics API] Calling AI service...")
         topics_json = ai_service.generate(
             prompt_name="topic_recommendation",
             variables={"search_results": search_text},
             is_image=False
         )
+        
+        logger.info(f"[Topics API] AI response: {topics_json[:200]}...")
         
         return TopicRecommendResponse(
             code=200,
@@ -69,7 +107,9 @@ async def recommend_topics(request: TopicRecommendRequest):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"[Topics API] Error: {e}")
+        logger.exception("Full traceback:")
+        raise HTTPException(status_code=500, detail=f"推荐失败：{str(e)}")
 
 
 def format_search_results(search_results: List[Dict[str, Any]]) -> str:

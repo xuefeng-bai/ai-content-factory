@@ -46,10 +46,18 @@ const PromptEditPage = () => {
       setPromptData(data);
       setIsSystem(data.is_system);
       
-      // 填充表单数据
+      // 填充表单数据 - 处理 variables 可能是字符串或数组
+      let variablesStr = '';
+      if (Array.isArray(data.variables)) {
+        variablesStr = data.variables.join(', ');
+      } else if (typeof data.variables === 'string') {
+        // 如果已经是字符串（可能从数据库直接返回），直接使用
+        variablesStr = data.variables;
+      }
+      
       form.setFieldsValue({
         ...data,
-        variables: data.variables?.join(', '),
+        variables: variablesStr,
       });
     } catch (error) {
       message.error(`加载失败：${error.message}`);
