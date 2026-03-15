@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 简单的 DashScope API 测试脚本
-直接调用 API 测试 Key 是否有效
+使用兼容 OpenAI 接口协议
 """
 
-import dashscope
-from dashscope import Generation
+from openai import OpenAI
 
 # ==================== 配置 ====================
 # 在这里填入你的 API Key
 API_KEY = "sk-sp-215c5f115f0b42aa82afa6f28e12fbd7"
+
+# Base URL（兼容 OpenAI 协议）
+BASE_URL = "https://coding.dashscope.aliyuncs.com/v1"
 
 # 使用的模型
 MODEL = "qwen3.5-plus"
@@ -19,7 +21,7 @@ MODEL = "qwen3.5-plus"
 
 def test_api(prompt: str) -> str:
     """
-    调用 DashScope API 生成内容
+    调用 DashScope API 生成内容（使用 OpenAI 兼容接口）
     
     Args:
         prompt: 提示词
@@ -27,31 +29,31 @@ def test_api(prompt: str) -> str:
     Returns:
         生成的内容
     """
-    # 设置 API Key
-    dashscope.api_key = API_KEY
-    
     try:
         print(f"正在调用 {MODEL} 模型...")
+        print(f"Base URL: {BASE_URL}")
         print(f"提示词：{prompt[:100]}...")
         print()
         
-        # 调用 API
-        response = Generation.call(
-            model=MODEL,
-            prompt=prompt,
-            max_tokens=2000,
-            temperature=0.7,
-            result_format='message'
+        # 创建 OpenAI 客户端（使用 DashScope 兼容接口）
+        client = OpenAI(
+            api_key=API_KEY,
+            base_url=BASE_URL
         )
         
-        # 检查响应
-        if response.status_code == 200:
-            content = response.output.choices[0].message.content
-            return content
-        else:
-            error_msg = f"API 错误：{response.status_code} - {response.message}"
-            print(f"❌ {error_msg}")
-            return error_msg
+        # 调用 API
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=2000,
+            temperature=0.7
+        )
+        
+        # 返回生成的内容
+        content = response.choices[0].message.content
+        return content
             
     except Exception as e:
         error_msg = f"调用失败：{e}"
@@ -63,7 +65,7 @@ def test_api(prompt: str) -> str:
 
 if __name__ == "__main__":
     print("="*60)
-    print("  DashScope API 简单测试")
+    print("  DashScope API 简单测试（OpenAI 兼容接口）")
     print("="*60)
     print()
     
