@@ -89,12 +89,21 @@ def row_to_dict(row: sqlite3.Row) -> dict:
         return None
     result = dict(row)
     
-    # Parse JSON fields
+    # Parse JSON fields - variables
     if 'variables' in result and result['variables']:
         try:
             result['variables'] = json.loads(result['variables'])
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError) as e:
             # If already a string or invalid JSON, keep as is
+            import logging
+            logging.warning(f"Failed to parse variables JSON: {result['variables']}, error: {e}")
+            pass
+    
+    # Parse JSON fields - image_urls (for history)
+    if 'image_urls' in result and result['image_urls']:
+        try:
+            result['image_urls'] = json.loads(result['image_urls'])
+        except (json.JSONDecodeError, TypeError):
             pass
     
     return result

@@ -34,16 +34,21 @@ const TopicPage = () => {
     setError(null);
 
     try {
-      // TODO: 从搜索结果获取，这里先用示例数据
+      // 使用 Mock 数据测试
       const mockSearchResults = [
-        { title: 'AI 工具提升效率', source: 'weibo', hot_value: '500w' },
-        { title: '职场人必备技能', source: 'zhihu', hot_value: '300w' },
+        { title: 'AI 工具提升效率', source: 'weibo', hot_value: '500w 阅读' },
+        { title: '职场人必备技能', source: 'zhihu', hot_value: '300 万赞同' },
+        { title: '时间管理方法', source: 'weibo', hot_value: '200w 讨论' },
       ];
 
+      console.log('[TopicPage] Calling API with:', mockSearchResults);
+      
       const data = await topicsApi.recommend({
         search_results: mockSearchResults,
         theme: 'AI 效率工具',
       });
+
+      console.log('[TopicPage] API response:', data);
 
       // 解析 AI 返回的 JSON
       let topicsData;
@@ -52,14 +57,17 @@ const TopicPage = () => {
           ? JSON.parse(data.topics) 
           : data.topics;
       } catch (e) {
-        topicsData = data.topics;
+        console.error('[TopicPage] Failed to parse topics:', e);
+        topicsData = data.topics || [];
       }
 
+      console.log('[TopicPage] Parsed topics:', topicsData);
       setTopics(topicsData || []);
       message.success('选题推荐成功');
     } catch (err) {
+      console.error('[TopicPage] Error:', err);
       setError(err.message);
-      message.error(`推荐失败：${err.message}`);
+      message.error(`推荐失败：${err.message || '未知错误'}`);
     } finally {
       setLoading(false);
     }

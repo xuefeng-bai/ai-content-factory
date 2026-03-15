@@ -10,7 +10,17 @@ export const topicsApi = {
    * @param {Array} data.search_results - 搜索结果
    * @param {string} data.theme - 主题
    */
-  recommend: (data) => api.post('/topics/recommend', data),
+  recommend: async (data) => {
+    console.log('[Topics API] Calling recommend with:', data);
+    try {
+      const result = await api.post('/topics/recommend', data);
+      console.log('[Topics API] Response:', result);
+      return result;
+    } catch (error) {
+      console.error('[Topics API] Error:', error);
+      throw error;
+    }
+  },
 };
 
 export default topicsApi;

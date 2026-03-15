@@ -43,6 +43,9 @@ const PromptEditPage = () => {
     setLoading(true);
     try {
       const data = await promptsApi.getById(id);
+      console.log('[PromptEdit] Loaded data:', data);
+      console.log('[PromptEdit] Variables:', data.variables, 'Type:', typeof data.variables, 'IsArray:', Array.isArray(data.variables));
+      
       setPromptData(data);
       setIsSystem(data.is_system);
       
@@ -51,15 +54,27 @@ const PromptEditPage = () => {
       if (Array.isArray(data.variables)) {
         variablesStr = data.variables.join(', ');
       } else if (typeof data.variables === 'string') {
-        // 如果已经是字符串（可能从数据库直接返回），直接使用
-        variablesStr = data.variables;
+        // 尝试解析 JSON 字符串
+        try {
+          const parsed = JSON.parse(data.variables);
+          if (Array.isArray(parsed)) {
+            variablesStr = parsed.join(', ');
+          } else {
+            variablesStr = data.variables;
+          }
+        } catch (e) {
+          // 不是 JSON，直接使用
+          variablesStr = data.variables;
+        }
       }
       
+      console.log('[PromptEdit] Setting variables to:', variablesStr);
       form.setFieldsValue({
         ...data,
         variables: variablesStr,
       });
     } catch (error) {
+      console.error('[PromptEdit] Load error:', error);
       message.error(`加载失败：${error.message}`);
     } finally {
       setLoading(false);
