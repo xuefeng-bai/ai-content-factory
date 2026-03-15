@@ -153,7 +153,6 @@ class AIService:
     ) -> str:
         """
         Call DashScope AI for text generation.
-        支持兼容 OpenAI 协议的 Coding Plan 接口
         
         Args:
             prompt: Filled prompt
@@ -166,30 +165,9 @@ class AIService:
             Generated text content
         """
         try:
-            logger.info(f"Calling AI with model={model}, base_url={config.DASHSCOPE_BASE_URL}")
+            logger.info(f"Calling AI with model={model}")
             
-            # 使用兼容 OpenAI 协议的接口
-            from openai import OpenAI
-            
-            client = OpenAI(
-                api_key=self.api_key,
-                base_url=config.DASHSCOPE_BASE_URL
-            )
-            
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=max_tokens,
-                temperature=temperature
-            )
-            
-            return response.choices[0].message.content
-                
-        except ImportError:
-            # 如果没有 openai 库，使用原始 DashScope SDK
-            logger.info("OpenAI library not available, using DashScope SDK")
+            # 使用 DashScope SDK
             response = Generation.call(
                 model=model,
                 prompt=prompt,

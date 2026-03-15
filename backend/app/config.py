@@ -13,6 +13,10 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
+# 导入 dashscope 配置
+import dashscope
+dashscope.api_key = os.getenv("DASHSCOPE_API_KEY", "")
+
 
 class Config:
     """Application configuration."""
@@ -25,6 +29,7 @@ class Config:
     
     # ==================== AI Service ====================
     DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
+    DASHSCOPE_BASE_URL: str = os.getenv("DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
     AI_MODEL: str = os.getenv("AI_MODEL", "qwen-plus")
     
     # ==================== AI Timeout (seconds) ====================
