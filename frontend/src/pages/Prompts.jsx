@@ -30,6 +30,7 @@ const { Option } = Select;
  * Prompt 管理列表页
  */
 const PromptsPage = () => {
+  const navigate = useNavigate();
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
