@@ -12,7 +12,12 @@ from pathlib import Path
 
 import dashscope
 from dashscope import Generation
-from dashscope import ImageSynthesis
+
+# 兼容不同版本的 dashscope
+try:
+    from dashscope import ImageSynthesis
+except ImportError:
+    from dashscope.aigc.image_synthesis import ImageSynthesis
 
 from app.config import config
 from app.ai.prompts import PromptLoader, Prompt
