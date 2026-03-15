@@ -16,8 +16,12 @@ from dashscope import Generation
 # 兼容不同版本的 dashscope
 try:
     from dashscope import ImageSynthesis
-except ImportError:
-    from dashscope.aigc.image_synthesis import ImageSynthesis
+except (ImportError, ModuleNotFoundError):
+    try:
+        from dashscope.aigc.image_synthesis import ImageSynthesis
+    except (ImportError, ModuleNotFoundError):
+        ImageSynthesis = None
+        print("Warning: ImageSynthesis not available. Image generation will be disabled.")
 
 from app.config import config
 from app.ai.prompts import PromptLoader, Prompt
