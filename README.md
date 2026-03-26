@@ -66,6 +66,21 @@ ai-content-factory/
 
 ## 🛠️ 快速开始
 
+### Windows 用户（推荐）⭐
+
+**一键启动：**
+```powershell
+# 双击运行或在命令行执行
+.\start.bat
+```
+
+**初始化数据库：**
+```powershell
+.\init-db.bat
+```
+
+### macOS/Linux 用户
+
 ### 后端启动
 
 ```bash
@@ -81,10 +96,13 @@ source venv/bin/activate  # Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 
 # 复制配置文件
-cp .env.example .env
+cp .env.example .env  # Windows: copy .env.example .env
 # 编辑 .env 配置 API Key
 
-# 初始化数据库
+# 初始化数据库（3 种方式任选）
+python -m app.utils.init_db  # 推荐
+python app/utils/init_db.py  # 需要设置 PYTHONPATH
+$env:PYTHONPATH="."  # Windows PowerShell
 python app/utils/init_db.py
 
 # 启动服务
@@ -103,7 +121,7 @@ cd frontend
 npm install
 
 # 配置环境变量
-cp .env.local.example .env.local
+cp .env.local.example .env.local  # Windows: copy .env.example .env.local
 
 # 启动开发服务
 npm run dev

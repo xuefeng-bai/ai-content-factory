@@ -1,10 +1,17 @@
 # Database Initialization Script
+# 修复 Windows 兼容性：使用 -m 参数运行时自动处理路径
 
 import sys
 from pathlib import Path
 
-# 添加项目根目录到 Python 路径
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# 智能路径处理：支持直接运行和 -m 模块运行
+# 修复 Windows: ModuleNotFoundError: No module named 'app'
+current_file = Path(__file__).resolve()
+project_root = current_file.parent.parent.parent
+
+# 只在不是通过 -m 运行时才添加路径
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from app.models.base import Base
 from app.models.generation import ContentGeneration

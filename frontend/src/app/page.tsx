@@ -1,13 +1,43 @@
 'use client'
 
-import { useState } from 'react'
-import axios from 'axios'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { templateAPI, contentAPI } from '@/api/client'
 
 export default function Home() {
+  const router = useRouter()
   const [topic, setTopic] = useState('')
   const [templateId, setTemplateId] = useState<number | null>(null)
+  const [templates, setTemplates] = useState<any[]>([])
+  const [history, setHistory] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [generationId, setGenerationId] = useState<number | null>(null)
+
+  // 加载模板列表和历史记录
+  useEffect(() => {
+    loadInitialData()
+  }, [])
+
+  const loadInitialData = async () => {
+    try {
+      // 加载模板列表
+      const templateResponse = await templateAPI.getList()
+      if (templateResponse.code === 200) {
+        setTemplates(templateResponse.data)
+      }
+
+      // 加载最近历史记录
+      const historyResponse = await contentAPI.getHistory(1, 6)
+      if (historyResponse.code === 200) {
+        setHistory(historyResponse.data.list)
+      }
+    } catch (error) {
+      console.error('加载数据失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -70,11 +100,11 @@ export default function Home() {
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">使用系统默认模板</option>
-            {/* TODO: 从 API 加载模板列表 */}
-            <option value="1">抖音默认模板</option>
-            <option value="2">视频号默认模板</option>
-            <option value="3">公众号默认模板</option>
-            <option value="4">小红书默认模板</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name} {template.is_default === 1 ? '（系统默认）' : ''}
+              </option>
+            ))}
           </select>
         </div>
 
