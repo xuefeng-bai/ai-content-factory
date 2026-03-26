@@ -10,7 +10,7 @@ class PromptTemplate(Base):
     
     __tablename__ = "prompt_templates"
     
-    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键 ID")
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键 ID")
     name = Column(String(100), nullable=False, comment="模板名称")
     platform = Column(String(20), nullable=False, comment="适用平台：all/douyin/video_account/wechat/xiaohongshu")
     template_content = Column(Text, nullable=False, comment="模板内容（支持参数：{topic},{style},{word_count}）")

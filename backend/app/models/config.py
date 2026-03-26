@@ -10,7 +10,7 @@ class SystemConfig(Base):
     
     __tablename__ = "system_configs"
     
-    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键 ID")
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键 ID")
     config_key = Column(String(100), nullable=False, unique=True, comment="配置键（如：claude_api_key）")
     config_value = Column(Text, nullable=False, comment="配置值（加密存储）")
     config_type = Column(String(20), nullable=False, default="string", comment="配置类型：string/number/boolean/json")

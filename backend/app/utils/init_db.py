@@ -20,6 +20,8 @@ from app.models.cover import CoverImage
 from app.models.template import PromptTemplate
 from app.models.config import SystemConfig
 from app.utils.db import sync_engine
+from sqlalchemy.orm import Session
+
 
 def init_db():
     """初始化数据库 - 创建所有表"""
@@ -37,8 +39,6 @@ def init_db():
     print("  - system_configs (系统配置表)")
     
     # 插入默认提示词模板
-    from sqlalchemy.orm import Session
-    
     with Session(sync_engine) as session:
         # 检查是否已有默认模板
         existing = session.query(PromptTemplate).filter(
@@ -48,42 +48,23 @@ def init_db():
         if not existing:
             print("\n📝 插入默认提示词模板...")
             
-            # 逐个插入默认模板（修复 SQLite 批量插入 autoincrement 问题）
+            # 修复 SQLAlchemy 1.4 + Python 3.6 兼容性：显式指定 ID
             default_templates = [
-                {
-                    "name": "抖音默认模板",
-                    "platform": "douyin",
-                    "template_content": "请为抖音平台写一个短视频脚本，主题是：{topic}。要求：节奏快、前 3 秒抓人、强吸引力开头，{word_count}。请使用 Markdown 格式输出，包含标题和正文。",
-                    "sort_order": 1
-                },
-                {
-                    "name": "视频号默认模板",
-                    "platform": "video_account",
-                    "template_content": "请为视频号写一个短视频脚本，主题是：{topic}。要求：{style}，{word_count}。请使用 Markdown 格式输出，包含标题和正文。",
-                    "sort_order": 2
-                },
-                {
-                    "name": "公众号默认模板",
-                    "platform": "wechat",
-                    "template_content": "请为公众号写一篇图文文章，主题是：{topic}。要求：深度、专业、逻辑清晰，{word_count}。请使用 Markdown 格式输出，包含标题、小标题和正文。",
-                    "sort_order": 3
-                },
-                {
-                    "name": "小红书默认模板",
-                    "platform": "xiaohongshu",
-                    "template_content": "请为小红书写一篇图文笔记，主题是：{topic}。要求：真实分享风格、emoji 丰富、口语化，{word_count}。请使用 Markdown 格式输出，包含标题和正文。",
-                    "sort_order": 4
-                }
+                (1, "抖音默认模板", "douyin", "请为抖音平台写一个短视频脚本，主题是：{topic}。要求：节奏快、前 3 秒抓人、强吸引力开头，{word_count}。请使用 Markdown 格式输出，包含标题和正文。", 1),
+                (2, "视频号默认模板", "video_account", "请为视频号写一个短视频脚本，主题是：{topic}。要求：{style}，{word_count}。请使用 Markdown 格式输出，包含标题和正文。", 2),
+                (3, "公众号默认模板", "wechat", "请为公众号写一篇图文文章，主题是：{topic}。要求：深度、专业、逻辑清晰，{word_count}。请使用 Markdown 格式输出，包含标题、小标题和正文。", 3),
+                (4, "小红书默认模板", "xiaohongshu", "请为小红书写一篇图文笔记，主题是：{topic}。要求：真实分享风格、emoji 丰富、口语化，{word_count}。请使用 Markdown 格式输出，包含标题和正文。", 4)
             ]
             
-            for template_data in default_templates:
+            for id, name, platform, content, sort in default_templates:
                 template = PromptTemplate(
-                    name=template_data["name"],
-                    platform=template_data["platform"],
-                    template_content=template_data["template_content"],
+                    id=id,
+                    name=name,
+                    platform=platform,
+                    template_content=content,
                     is_default=1,
                     is_active=1,
-                    sort_order=template_data["sort_order"],
+                    sort_order=sort,
                     created_by="admin",
                     updated_by="admin"
                 )

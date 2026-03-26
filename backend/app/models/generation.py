@@ -10,7 +10,7 @@ class ContentGeneration(Base):
     
     __tablename__ = "content_generations"
     
-    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键 ID")
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键 ID")
     topic = Column(String(500), nullable=False, comment="生成主题")
     status = Column(String(20), nullable=False, default="pending", comment="状态：pending/processing/completed/failed/partial")
     template_id = Column(BigInteger, nullable=True, comment="使用的提示词模板 ID")

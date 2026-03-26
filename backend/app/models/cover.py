@@ -10,7 +10,7 @@ class CoverImage(Base):
     
     __tablename__ = "cover_images"
     
-    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键 ID")
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键 ID")
     content_id = Column(BigInteger, ForeignKey("content_items.id"), nullable=False, comment="内容项 ID（外键）")
     platform = Column(String(20), nullable=False, comment="平台")
     image_url = Column(String(500), nullable=False, comment="图片 URL")

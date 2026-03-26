@@ -10,7 +10,7 @@ class ContentItem(Base):
     
     __tablename__ = "content_items"
     
-    id = Column(BigInteger, primary_key=True, autoincrement=True, comment="主键 ID")
+    id = Column(Integer, primary_key=True, autoincrement=True, comment="主键 ID")
     generation_id = Column(BigInteger, ForeignKey("content_generations.id"), nullable=False, comment="生成任务 ID（外键）")
     platform = Column(String(20), nullable=False, comment="平台：douyin/video_account/wechat/xiaohongshu")
     title = Column(String(200), nullable=True, comment="标题")
