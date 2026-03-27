@@ -1,10 +1,11 @@
 # Content Generation API Routes
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import uuid
 from datetime import datetime
+from pydantic import BaseModel
 
 from app.utils.db import get_db
 from app.models.generation import ContentGeneration
@@ -16,10 +17,30 @@ from app.services.generator import ContentGeneratorService
 router = APIRouter()
 
 
-@router.post("/generate")
+# 请求/响应模型
+class GenerateRequest(BaseModel):
+    topic: str
+    template_id: Optional[int] = None
+
+class GenerateResponse(BaseModel):
+    code: int
+    message: str
+    data: dict
+
+class ContentResponse(BaseModel):
+    code: int
+    message: str
+    data: Optional[dict] = None
+
+class ListResponse(BaseModel):
+    code: int
+    message: str
+    data: dict
+
+
+@router.post("/generate", response_model=GenerateResponse)
 async def generate_content(
-    topic: str,
-    template_id: Optional[int] = None,
+    request: GenerateRequest,
     db: Session = Depends(get_db)
 ):
     """
@@ -36,9 +57,9 @@ async def generate_content(
     try:
         # 创建生成任务
         generation = ContentGeneration(
-            topic=topic,
+            topic=request.topic,
             status="pending",
-            template_id=template_id,
+            template_id=request.template_id,
             created_by="admin",
             updated_by="admin"
         )
@@ -51,8 +72,8 @@ async def generate_content(
         generator = ContentGeneratorService(db)
         await generator.generate_all_platforms(
             generation_id=generation.id,
-            topic=topic,
-            template_id=template_id
+            topic=request.topic,
+            template_id=request.template_id
         )
         
         return {
@@ -65,6 +86,52 @@ async def generate_content(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/history")
+async def get_history(
+    page: int = 1,
+    page_size: int = 20,
+    keyword: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    获取历史记录列表
+    
+    **支持：**
+    - 分页
+    - 按主题搜索
+    """
+    query = db.query(ContentGeneration).filter(
+        ContentGeneration.is_deleted == 0
+    )
+    
+    if keyword:
+        query = query.filter(ContentGeneration.topic.like(f"%{keyword}%"))
+    
+    # 按创建时间倒序
+    query = query.order_by(ContentGeneration.created_at.desc())
+    
+    # 分页
+    total = query.count()
+    items = query.offset((page - 1) * page_size).limit(page_size).all()
+    
+    return {
+        "code": 200,
+        "message": "success",
+        "data": {
+            "total": total,
+            "list": [
+                {
+                    "id": item.id,
+                    "topic": item.topic,
+                    "status": item.status,
+                    "created_at": item.created_at.isoformat()
+                }
+                for item in items
+            ]
+        }
+    }
 
 
 @router.get("/{generation_id}")
@@ -221,52 +288,6 @@ async def regenerate_platform(
     return {
         "code": 200,
         "message": "重新生成任务已创建"
-    }
-
-
-@router.get("/history")
-async def get_history(
-    page: int = 1,
-    page_size: int = 20,
-    keyword: Optional[str] = None,
-    db: Session = Depends(get_db)
-):
-    """
-    获取历史记录列表
-    
-    **支持：**
-    - 分页
-    - 按主题搜索
-    """
-    query = db.query(ContentGeneration).filter(
-        ContentGeneration.is_deleted == 0
-    )
-    
-    if keyword:
-        query = query.filter(ContentGeneration.topic.like(f"%{keyword}%"))
-    
-    # 按创建时间倒序
-    query = query.order_by(ContentGeneration.created_at.desc())
-    
-    # 分页
-    total = query.count()
-    items = query.offset((page - 1) * page_size).limit(page_size).all()
-    
-    return {
-        "code": 200,
-        "message": "success",
-        "data": {
-            "total": total,
-            "list": [
-                {
-                    "id": item.id,
-                    "topic": item.topic,
-                    "status": item.status,
-                    "created_at": item.created_at.isoformat()
-                }
-                for item in items
-            ]
-        }
     }
 
 

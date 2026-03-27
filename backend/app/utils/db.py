@@ -10,6 +10,11 @@ import os
 DATABASE_TYPE = os.getenv("DATABASE_TYPE", "sqlite")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ai_content_factory.db")
 
+# SQLite 需要添加 connect_args 以支持多线程
+connect_args = {}
+if DATABASE_TYPE == "sqlite":
+    connect_args["check_same_thread"] = False
+
 # 异步引擎（用于 FastAPI 异步接口）
 async_engine = create_async_engine(
     DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///"),
@@ -21,7 +26,8 @@ async_engine = create_async_engine(
 sync_engine = create_engine(
     DATABASE_URL,
     echo=False,
-    future=True
+    future=True,
+    connect_args=connect_args
 )
 
 # 异步 Session
